@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>osu! Scorecard Generator</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="favicon.png" type="image/png">
+</head>
+<body>
+    <div class="container">
+        <!-- Left panel -->
+        <div class="left-panel">
+            <h2>osu! Scorecard Generator</h2>
+            <!-- Score ID input-->
+            <div class="input-group">
+                <label for="scoreId">Score ID:</label>
+                <input type="text" id="scoreId" placeholder="Enter score ID">
+            </div>
+            <!-- Extra text input -->
+            <div class="input-group">
+                <label for="extraText">Extra Text:</label>
+                <textarea id="extraText" placeholder="Any extra information about this play?"></textarea>
+            </div>
+            <!-- Dropdown section for overrides -->
+            <div class="dropdown-container">
+                <!-- Dropdown bar -->
+                <div class="dropdown-toggle" onclick="toggleDropdown()">
+                    <span> Overrides </span>
+                    <span class="dropdown-arrow" id="arrow">▼</span>
+                </div>
+                <div class="dropdown-content" id="dropdownContent">
+                    <!-- Beatmap ID Input -->
+                    <div class="input-group">
+                        <label for="mapOverride">Beatmap ID:</label>
+                        <input type="text" id="mapId" placeholder="658127">
+                    </div>
+
+                    <!-- Lazer Scoring Checkbox -->
+                    <div class="input-group">
+                        <label for="lazerScoringOverride">
+                            <input type="checkbox" id="lazerScoringOverride"> Lazer Scoring
+                        </label>
+                    </div>
+
+                    <!-- Score Override Fields -->
+                    <div id="scoreOverrides">                        
+                        <!-- Score Input -->
+                        <div class="input-group">
+                            <label for="scoreOverride">Score:</label>
+                            <input type="number" id="scoreOverride" placeholder="150,551,330" min="0" max="999999999">
+                        </div>
+                        
+                        <!-- Hit Counts Row -->
+                        <div class="input-group">
+                            <label>Hit Counts:</label>
+                            <div class="input-row">
+                                <div class="input-col">
+                                    <label for="count300">300</label>
+                                    <input type="number" id="count300" placeholder="2188" min="0" max="99999">
+                                </div>
+                                <div class="input-col">
+                                    <label for="count100">100</label>
+                                    <input type="number" id="count100" placeholder="13" min="0" max="99999">
+                                </div>
+                                <div class="input-col">
+                                    <label for="count50">50</label>
+                                    <input type="number" id="count50" placeholder="0" min="0" max="99999">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Miss and Slider Ends Row -->
+                        <div class="input-group">
+                            <div class="input-row">
+                                <div class="input-col">
+                                    <label for="countMiss">Miss</label>
+                                    <input type="number" id="countMiss" placeholder="1" min="0" max="99999">
+                                </div>
+                                <div class="input-col" id="sliderEndsCol" style="display: none;">
+                                    <label for="countSliderEnds">Slider Ends</label>
+                                    <input type="number" id="countSliderEnds" placeholder="0" min="0" max="99999">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Combo, Accuracy, PP Row -->
+                        <div class="input-group">
+                            <label>Stats:</label>
+                            <div class="input-row">
+                                <div class="input-col">
+                                    <label for="comboOverride">Combo</label>
+                                    <input type="number" id="comboOverride" placeholder="2358" min="0" max="99999">
+                                </div>
+                                <div class="input-col">
+                                    <label for="accuracyOverride">Accuracy (%)</label>
+                                    <input type="number" id="accuracyOverride" placeholder="99.71" min="0" max="100" step="0.01">
+                                </div>
+                                <div class="input-col">
+                                    <label for="ppScoreOverride">PP</label>
+                                    <input type="number" id="ppScoreOverride" placeholder="727" min="0" max="99999" step="0.1">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="fullComboOverride">
+                                <input type="checkbox" id="fullComboOverride"> Full Combo
+                            </label>
+                        </div>
+                        
+                        <!-- Rank Selection -->
+                        <div class="input-group">
+                            <label for="rankOverride">Rank:</label>
+                            <select id="rankOverride">
+                                <option value="">Use Original</option>
+                                <option value="XH">XH (Silver SS)</option>
+                                <option value="X">X (SS)</option>
+                                <option value="SH">SH (Silver S)</option>
+                                <option value="S">S</option>
+                                <option value="A">A</option>
+                                <option value="B">B</option>
+                                <option value="C">C</option>
+                                <option value="D">D</option>
+                                <option value="F">F</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Mods Input -->
+                        <div class="input-group">
+                            <label for="modsOverride">Mods (comma separated):</label>
+                            <input type="text" id="modsOverride" placeholder="HR">
+                            <small>Enter mod codes separated by commas (e.g. HD,HR,DT)</small>
+                        </div>
+                        
+                        <!-- Leaderboard Place -->
+                        <div class="input-group">
+                            <label for="leaderboardOverride">Leaderboard Place:</label>
+                            <input type="number" id="leaderboardOverride" placeholder="1" min="1" max="999999999">
+                        </div>
+                        
+                        <!-- New User Override Fields -->
+                        <div class="input-group">
+                            <label for="usernameOverride">Username:</label>
+                            <input type="text" id="usernameOverride" placeholder="Cookiezi">
+                        </div>
+                        
+                        <div class="input-group">
+                            <label for="userRankOverride">User Rank:</label>
+                            <input type="number" id="userRankOverride" placeholder="1" min="1" max="999999999">
+                        </div>
+                        
+                        <div class="input-group">
+                            <label for="avatarUrlOverride">Avatar URL:</label>
+                            <input type="text" id="avatarUrlOverride" placeholder="Enter custom avatar image URL">
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="backgroundOverride">Background Cover URL:</label>
+                        <input type="text" id="backgroundOverride" placeholder="Override background image URL">
+                    </div>
+                    
+                    <div class="input-group" id="ppInputGroup" style="display: none;">
+                        <label for="ppOverride">PP for Loved Map:</label>
+                        <input type="number" id="ppOverride" placeholder="E.g. 727">
+                    </div>
+                </div>
+                
+            </div>
+
+            
+            <button id="generateBtn" disabled>Generate Preview</button>
+            <button id="saveBtn" disabled>Save as PNG</button>
+            
+            <div id="status"></div>
+			<div class="social-links">
+				<h3>Social Media</h3>
+				<a href="https://linktr.ee/amnitrobtw" target"_blank">Linktr.ee</a>
+			</div>
+        </div>
+        
+        <div class="right-panel">
+            <div id="preview-container">
+                <div id="scorecard-preview" class="scorecard" style="display: none;">
+                    <!-- Scorecard will be generated here -->
+                </div>
+                <div id="placeholder">
+                    Enter a Score ID to generate preview
+                </div>
+            </div>
+        </div>
+    </div>
+    
+<script src="https://cdn.jsdelivr.net/npm/html-to-image@1.10.0/dist/html-to-image.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
