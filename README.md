@@ -6,7 +6,7 @@ This little amateur web-app can create a scorecard (kinda like a mini result scr
 osu!scorecard generator gets a score's data from the osu!api and then places that data into a little card template made with HTML and CSS. The app can then use the html-to-image library to turn that scorecard element into a png file that you can download and use to show off or post your score to reddit or whatever!
 
 ## Known bugs
-- When visiting the website and generating multiple scorecards in a row without refreshing, the following scorecards will use the background image of the first card when downloaded
+- None :D
 
 ## To-Do
 - Fix known bugs (obviously)
