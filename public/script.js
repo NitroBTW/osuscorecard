@@ -42,6 +42,21 @@ async function applyBackgroundDataUrl(containerElement, sourceUrl, contextTag) {
     }
 }
 
+// Apply avatar image as data URL
+async function applyAvatarDataUrl(containerElement, sourceUrl, contextTag) {
+    try {
+        const imgEl = containerElement.querySelector('.avatar-container img.avatar');
+        if (!imgEl) {
+            return;
+        }
+        const dataUrl = await fetchImageAsDataUrl(sourceUrl);
+        imgEl.src = dataUrl;
+    } catch (e) {
+        console.warn(contextTag, 'failed to apply avatar data URL', e);
+    }
+}
+
+
 // Load gradient colours on page load
 async function loadGradientColours() {
     try {
@@ -425,6 +440,12 @@ async function updateScorecardFromMap() {
     if (bgImgEl) {
         applyBackgroundDataUrl(preview, proxiedBackgroundUrl, 'Map render:');
     }
+
+    // Replace avatar with data URL
+    const avatarImgEl = preview.querySelector('.avatar-container img.avatar');
+    if (avatarImgEl) {
+        applyAvatarDataUrl(preview, proxiedAvatarUrl, 'Map render:');
+    }
 }
 
 // Parse mods string into array format expected by the scorecard
@@ -725,6 +746,12 @@ async function updateScorecard() {
     const bgImgEl = preview.querySelector('.background-image img.bg-img');
     if (bgImgEl) {
         applyBackgroundDataUrl(preview, proxiedBackgroundUrl, 'Score render:');
+    }
+
+    // Replace avatar with data URL
+    const avatarImgEl = preview.querySelector('.avatar-container img.avatar');
+    if (avatarImgEl) {
+        applyAvatarDataUrl(preview, proxiedAvatarUrl, 'Map render:');
     }
 }
 
