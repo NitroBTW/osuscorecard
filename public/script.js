@@ -193,7 +193,7 @@ async function fetchMapData(mapId) {
         }
         
         // Update scorecard with map data
-        updateScorecardFromMap();
+        updateScorecard();
         setStatus('Map loaded successfully!', 'success');
         document.getElementById('generateBtn').disabled = false;
         
@@ -210,86 +210,221 @@ async function fetchMapData(mapId) {
     }
 }
 
-// Update scorecard display using map data with blank score information
-async function updateScorecardFromMap() {
-    if (!currentMapData) return;
-
-    // Get user input values
-    const extraText = document.getElementById('extraText').value.replace(/\n/g, '<br>');
-    const fullComboOverride = document.getElementById('fullComboOverride').checked;
-    const backgroundOverride = document.getElementById('backgroundOverride').value;
-    const ppOverride = document.getElementById('ppOverride').value;
-    const lazerScoring = document.getElementById('lazerScoringOverride').checked;
-
-    const data = currentMapData;
-    const isLoved = data.beatmap.status === 'loved';
-
-    // Get override values
+// Extract and process score data based on current data type
+function extractScoreData() {
     const overrides = getScoreOverrides();
-    const userOverrides = getUserOverrides();
+    
+    if (currentScoreData) {
+        const data = currentScoreData;
+        return {
+            score: overrides.score !== '' ? parseInt(overrides.score) : (data.lazer ? data.score.score : data.score.classic_score),
+            classic_score: overrides.score !== '' ? parseInt(overrides.score) : data.score.classic_score,
+            c300: overrides.count300 !== '' ? parseInt(overrides.count300) : data.score.c300,
+            c100: overrides.count100 !== '' ? parseInt(overrides.count100) : data.score.c100,
+            c50: overrides.count50 !== '' ? parseInt(overrides.count50) : data.score.c50,
+            misses: overrides.countMiss !== '' ? parseInt(overrides.countMiss) : data.score.misses,
+            cEnds: overrides.countSliderEnds !== '' ? parseInt(overrides.countSliderEnds) : data.score.cEnds,
+            max_combo: overrides.combo !== '' ? parseInt(overrides.combo) : data.score.max_combo,
+            accuracy: overrides.accuracy !== '' ? parseFloat(overrides.accuracy) / 100 : data.score.accuracy,
+            pp: overrides.pp !== '' ? parseFloat(overrides.pp) : data.score.pp,
+            rank: overrides.rank !== '' ? overrides.rank : data.score.rank,
+            mods: overrides.mods !== '' ? parseModsString(overrides.mods) : data.score.mods,
+            leaderboard: overrides.leaderboard !== '' ? parseInt(overrides.leaderboard) : data.score.leaderboard,
+            full_combo: data.score.full_combo,
+            cSliders: data.score.cSliders
+        };
+    } else if (currentMapData) {
+        // Default values for map preview
+        return {
+            score: overrides.score !== '' ? parseInt(overrides.score) : 0,
+            c300: overrides.count300 !== '' ? parseInt(overrides.count300) : 0,
+            c100: overrides.count100 !== '' ? parseInt(overrides.count100) : 0,
+            c50: overrides.count50 !== '' ? parseInt(overrides.count50) : 0,
+            misses: overrides.countMiss !== '' ? parseInt(overrides.countMiss) : 0,
+            cEnds: overrides.countSliderEnds !== '' ? parseInt(overrides.countSliderEnds) : 0,
+            cSliders: 100, // Default value for map preview
+            max_combo: overrides.combo !== '' ? parseInt(overrides.combo) : 0,
+            accuracy: overrides.accuracy !== '' ? parseFloat(overrides.accuracy) / 100 : 0,
+            pp: overrides.pp !== '' ? parseFloat(overrides.pp) : 0,
+            rank: overrides.rank !== '' ? overrides.rank : 'F',
+            mods: overrides.mods !== '' ? parseModsString(overrides.mods) : [],
+            leaderboard: overrides.leaderboard !== '' ? parseInt(overrides.leaderboard) : 0,
+            full_combo: false
+        };
+    }
+    return null;
+}
 
-    // Determine PP display for loved maps
-    let ppDisplay;
+// Extract user data with overrides applied
+function extractUserData() {
+    const userOverrides = getUserOverrides();
+    
+    if (currentScoreData) {
+        const data = currentScoreData;
+        return {
+            username: userOverrides.username !== '' ? userOverrides.username : data.user.username,
+            userRank: userOverrides.userRank !== '' ? parseInt(userOverrides.userRank) : data.user.user_rank,
+            avatarUrl: userOverrides.avatarUrl !== '' ? userOverrides.avatarUrl : data.user.avatar_url,
+            country: data.user.country
+        };
+    } else if (currentMapData) {
+        // Default values for map preview
+        const defaultAvatarUrl = 'https://osu.ppy.sh/images/layout/avatar-guest.png';
+        return {
+            username: userOverrides.username || 'Guest',
+            userRank: userOverrides.userRank || 0,
+            avatarUrl: userOverrides.avatarUrl || defaultAvatarUrl,
+            country: 'xx'
+        };
+    }
+    return null;
+}
+
+// Get beatmap data from current source
+function getBeatmapData() {
+    if (currentScoreData) return currentScoreData.beatmap;
+    if (currentMapData) return currentMapData.beatmap;
+    return null;
+}
+
+// Determine PP display text
+function getPpDisplay(scoreData, isLoved) {
+    const ppOverride = document.getElementById('ppOverride').value;
+    
     if (isLoved) {
         if (ppOverride === '' || ppOverride === null) {
-            ppDisplay = '♥';
+            return '♥';
         } else {
-            ppDisplay = `${formatScore(Math.round(parseFloat(ppOverride)))}pp ♥`;
+            return `${formatScore(Math.round(parseFloat(ppOverride)))}pp ♥`;
         }
     } else {
-        ppDisplay = overrides.pp !== '' ? `${formatScore(Math.round(parseFloat(overrides.pp)))}pp` : '0pp';
+        return `${formatScore(Math.round(scoreData.pp))}pp`;
     }
+}
 
-    // Determine full combo text
-    const fullComboText = fullComboOverride ? "Full Combo!" : "";
 
-    // Determine background image (prefers user override)
-    const backgroundUrl = backgroundOverride || data.beatmap.cover;
-    const proxiedBackgroundUrl = getProxiedImageUrl('background', backgroundUrl);
+// Determine background image URL
+async function getBackgroundUrl() {
+    const backgroundOverride = document.getElementById('backgroundOverride').value;
     
+    if (backgroundOverride) {
+        return getProxiedImageUrl('background', backgroundOverride);
+    }
+    
+    const beatmap = getBeatmapData();
+    if (!beatmap) return '';
+    
+    // Try HD version first
+    const fallbackBackgroundUrl = beatmap.cover;
+    const highDefBackgroundUrl = `https://assets.ppy.sh/beatmaps/${beatmap.id}/covers/raw.jpg`;
+    
+    try {
+        const response = await fetch(highDefBackgroundUrl, { method: 'HEAD' });
+        if (response.ok) {
+            return getProxiedImageUrl('background', highDefBackgroundUrl);
+        } else {
+            console.warn('HD background not found, falling back to API cover image.');
+        }
+    } catch (error) {
+        console.error('Error fetching HD background:', error);
+    }
+    
+    return getProxiedImageUrl('background', fallbackBackgroundUrl);
+}
 
-    // Use placeholder avatar or user override for map previews
-    const defaultAvatarUrl = 'https://osu.ppy.sh/images/layout/avatar-guest.png';
-    const avatarUrl = userOverrides.avatarUrl || defaultAvatarUrl;
-    const proxiedAvatarUrl = getProxiedImageUrl('avatar', avatarUrl);
+// Generate hit counts HTML based on lazer/classic layout
+function generateHitCountsHtml(scoreData, isLazer) {
+    if (isLazer) {
+        return `
+            <!-- LAZER LAYOUT: 300/100/50 - Miss/Slider Ends - Combo/Accuracy -->
+            <div class="hit-count-row">
+                <div class="stat stat-300">
+                    <span class="label">300</span>
+                    <span class="value">${scoreData.c300}</span>
+                </div>
+                <div class="stat stat-100">
+                    <span class="label">100</span>
+                    <span class="value">${scoreData.c100}</span>
+                </div>
+                <div class="stat stat-50">
+                    <span class="label">50</span>
+                    <span class="value">${scoreData.c50}</span>
+                </div>
+            </div>
+            <div class="hit-count-row">
+                <div class="stat stat-miss">
+                    <span class="label">Miss</span>
+                    <span class="value">${scoreData.misses}</span>
+                </div>
+                <div class="stat stat-sliderend">
+                    <span class="label">Slider Ends</span>
+                    <span class="value">${scoreData.cEnds}/${scoreData.cSliders}</span>
+                </div>
+            </div>
+            <div class="hit-count-row">
+                <div class="stat stat-combo">
+                    <span class="label">Combo</span>
+                    <span class="value">${formatScore(scoreData.max_combo)}x</span>
+                </div>
+                <div class="stat stat-accuracy">
+                    <span class="label">Accuracy</span>
+                    <span class="value">${formatAccuracy(scoreData.accuracy)}%</span>
+                </div>
+            </div>
+        `;
+    } else {
+        return `
+            <!-- CLASSIC LAYOUT: 300/100 - 50/Miss - Combo/Accuracy -->
+            <div class="hit-count-row">
+                <div class="stat stat-300">
+                    <span class="label">300</span>
+                    <span class="value">${scoreData.c300}</span>
+                </div>
+                <div class="stat stat-100">
+                    <span class="label">100</span>
+                    <span class="value">${scoreData.c100}</span>
+                </div>
+            </div>
+            <div class="hit-count-row">
+                <div class="stat stat-50">
+                    <span class="label">50</span>
+                    <span class="value">${scoreData.c50}</span>
+                </div>
+                <div class="stat stat-miss">
+                    <span class="label">Miss</span>
+                    <span class="value">${scoreData.misses}</span>
+                </div>
+            </div>
+            <div class="hit-count-row">
+                <div class="stat stat-combo">
+                    <span class="label">Combo</span>
+                    <span class="value">${formatScore(scoreData.max_combo)}x</span>
+                </div>
+                <div class="stat stat-accuracy">
+                    <span class="label">Accuracy</span>
+                    <span class="value">${formatAccuracy(scoreData.accuracy)}%</span>
+                </div>
+            </div>
+        `;
+    }
+}
 
-    // Calculate star rating colour
-    const starColour = getGradientColour(data.beatmap.star_rating);
-    const srColour = data.beatmap.star_rating > 6.5 ? "ffe475" : "2c3b43";
-
-    // Apply overrides to default values
-    const scoreData = {
-        score: overrides.score !== '' ? parseInt(overrides.score) : 0,
-        c300: overrides.count300 !== '' ? parseInt(overrides.count300) : 0,
-        c100: overrides.count100 !== '' ? parseInt(overrides.count100) : 0,
-        c50: overrides.count50 !== '' ? parseInt(overrides.count50) : 0,
-        misses: overrides.countMiss !== '' ? parseInt(overrides.countMiss) : 0,
-        cEnds: overrides.countSliderEnds !== '' ? parseInt(overrides.countSliderEnds) : 0,
-        cSliders: 100, // Default value for map preview
-        max_combo: overrides.combo !== '' ? parseInt(overrides.combo) : 0,
-        accuracy: overrides.accuracy !== '' ? parseFloat(overrides.accuracy) / 100 : 0,
-        pp: overrides.pp !== '' ? parseFloat(overrides.pp) : 0,
-        rank: overrides.rank !== '' ? overrides.rank : 'F',
-        mods: overrides.mods !== '' ? parseModsString(overrides.mods) : [],
-        leaderboard: overrides.leaderboard !== '' ? parseInt(overrides.leaderboard) : 0
-    };
-
-    // Use user overrides or default values for map preview
-    const username = userOverrides.username || 'Guest';
-    const userRank = userOverrides.userRank || 0;
-
-    // Generate scorecard HTML with map data
-    const scorecardHtml = `
+// Unified scorecard generation function
+async function generateScorecardHtml(scoreData, userData, beatmap, isLazer, ppDisplay, fullComboText, extraText, backgroundUrl, avatarUrl) {
+    const starColour = getGradientColour(beatmap.star_rating);
+    const srColour = beatmap.star_rating > 6.5 ? "ffe475" : "2c3b43";
+    
+    return `
         <div class="top-bar">
             <div class="header">
                 <div class="map-info">
-                    <div class="map-title">${data.beatmap.title}</div>
+                    <div class="map-title">${beatmap.title}</div>
                     <div class="star-container">
-                        <div class="star-rating" style="background: ${starColour}; color: #${srColour}">★ ${data.beatmap.star_rating.toFixed(2)}&nbsp;</div>
+                        <div class="star-rating" style="background: ${starColour}; color: #${srColour}">☆ ${beatmap.star_rating.toFixed(2)}&nbsp;</div>
                         <div class="mapper">
-                            <span class="map-diff">${truncateText(data.beatmap.difficulty, 32)} </span>
+                            <span class="map-diff">${truncateText(beatmap.difficulty, 32)} </span>
                             <span class="mapped-by">Mapped by: </span>
-                            <span class="mapper">${data.beatmap.creator}</span>
+                            <span class="mapper">${beatmap.creator}</span>
                         </div>
                     </div>
                 </div>
@@ -306,77 +441,9 @@ async function updateScorecardFromMap() {
             <div class="main-content">
                 <div class="left-section">
                     <div class="stats">
-                        <div class="score">Score: ${formatScore(scoreData.score)}</div>
+                        <div class="score">Score: ${formatScore(isLazer ? scoreData.score : (scoreData.classic_score || scoreData.score))}</div>
                         <div class="hit-counts">
-                            ${lazerScoring ? `
-                                <!-- LAZER LAYOUT: 300/100/50 - Miss/Slider Ends - Combo/Accuracy -->
-                                <div class="hit-count-row">
-                                    <div class="stat stat-300">
-                                        <span class="label">300</span>
-                                        <span class="value">${scoreData.c300}</span>
-                                    </div>
-                                    <div class="stat stat-100">
-                                        <span class="label">100</span>
-                                        <span class="value">${scoreData.c100}</span>
-                                    </div>
-                                    <div class="stat stat-50">
-                                        <span class="label">50</span>
-                                        <span class="value">${scoreData.c50}</span>
-                                    </div>
-                                </div>
-                                <div class="hit-count-row">
-                                    <div class="stat stat-miss">
-                                        <span class="label">Miss</span>
-                                        <span class="value">${scoreData.misses}</span>
-                                    </div>
-                                    <div class="stat stat-sliderend">
-                                        <span class="label">Slider Ends</span>
-                                        <span class="value">${scoreData.cEnds}/${scoreData.cSliders}</span>
-                                    </div>
-                                </div>
-                                <div class="hit-count-row">
-                                    <div class="stat stat-combo">
-                                        <span class="label">Combo</span>
-                                        <span class="value">${formatScore(scoreData.max_combo)}x</span>
-                                    </div>
-                                    <div class="stat stat-accuracy">
-                                        <span class="label">Accuracy</span>
-                                        <span class="value">${formatAccuracy(scoreData.accuracy)}%</span>
-                                    </div>
-                                </div>
-                            ` : `
-                                <!-- CLASSIC LAYOUT: 300/100 - 50/Miss - Combo/Accuracy -->
-                                <div class="hit-count-row">
-                                    <div class="stat stat-300">
-                                        <span class="label">300</span>
-                                        <span class="value">${scoreData.c300}</span>
-                                    </div>
-                                    <div class="stat stat-100">
-                                        <span class="label">100</span>
-                                        <span class="value">${scoreData.c100}</span>
-                                    </div>
-                                </div>
-                                <div class="hit-count-row">
-                                    <div class="stat stat-50">
-                                        <span class="label">50</span>
-                                        <span class="value">${scoreData.c50}</span>
-                                    </div>
-                                    <div class="stat stat-miss">
-                                        <span class="label">Miss</span>
-                                        <span class="value">${scoreData.misses}</span>
-                                    </div>
-                                </div>
-                                <div class="hit-count-row">
-                                    <div class="stat stat-combo">
-                                        <span class="label">Combo</span>
-                                        <span class="value">${formatScore(scoreData.max_combo)}x</span>
-                                    </div>
-                                    <div class="stat stat-accuracy">
-                                        <span class="label">Accuracy</span>
-                                        <span class="value">${formatAccuracy(scoreData.accuracy)}%</span>
-                                    </div>
-                                </div>
-                            `}
+                            ${generateHitCountsHtml(scoreData, isLazer)}
                         </div>
                     </div>
                 </div>
@@ -396,12 +463,12 @@ async function updateScorecardFromMap() {
             <div class="bottom-section">
                 <div class="user-info">
                     <div class="avatar-container">
-                        <img src="${proxiedAvatarUrl}" alt="Avatar" class="avatar" crossorigin="anonymous">
-                        <div class="flag" style="background-image: url('./flags/xx.png')"></div>
+                        <img src="${avatarUrl}" alt="Avatar" class="avatar" crossorigin="anonymous">
+                        <div class="flag" style="background-image: url('./flags/${userData.country.toLowerCase()}.png')"></div>
                     </div>
                     <div class="user-details">
-                        <div class="username">${username}</div>
-                        <div class="user-rank">#${formatScore(userRank)}</div>
+                        <div class="username">${userData.username}</div>
+                        <div class="user-rank">#${formatScore(userData.userRank)}</div>
                     </div>
                 </div>
                 <div class="leaderboard-details">
@@ -411,22 +478,49 @@ async function updateScorecardFromMap() {
             </div>
         </div>
     `;
+}
 
-    // Update the preview container with generated HTML
+// Main unified update function
+async function updateScorecard() {
+    const data = currentScoreData || currentMapData;
+    if (!data) return;
+
+    const extraText = document.getElementById('extraText').value.replace(/\n/g, '<br>');
+    const fullComboOverride = document.getElementById('fullComboOverride').checked;
+    const lazerScoringOverride = document.getElementById('lazerScoringOverride').checked;
+
+    const scoreData = extractScoreData();
+    const userData = extractUserData();
+    const beatmap = getBeatmapData();
+    
+    if (!scoreData || !userData || !beatmap) return;
+
+    const isLoved = beatmap.status === 'loved';
+    const isLazer = currentScoreData ? lazerScoringOverride : lazerScoringOverride;
+    
+    const ppDisplay = getPpDisplay(scoreData, isLoved);
+    const fullComboText = (fullComboOverride || (currentScoreData && scoreData.full_combo)) ? "Full Combo!" : "";
+    
+    const backgroundUrl = await getBackgroundUrl();
+    const avatarUrl = getProxiedImageUrl('avatar', userData.avatarUrl);
+
+    const scorecardHtml = await generateScorecardHtml(
+        scoreData, userData, beatmap, isLazer, ppDisplay, 
+        fullComboText, extraText, backgroundUrl, avatarUrl
+    );
+
+    // Update the preview container
     const preview = document.getElementById('scorecard-preview');
     preview.innerHTML = scorecardHtml;
-    
 
-    // Wait for DOM to be fully rendered before adjusting
+    // Apply post-processing
     setTimeout(() => {
-        // Adjust title size based on mod icons
         const titleElement = preview.querySelector('.map-title');
         if (titleElement) {
-            const adjustedTitle = adjustTitleSize(data.beatmap.title);
+            const adjustedTitle = adjustTitleSize(beatmap.title);
             titleElement.textContent = adjustedTitle;
         }
         
-        // Adjust other elements
         adjustRightSectionSizes();
         adjustScorecardHeight(extraText, fullComboText !== "");
     }, 50);
@@ -435,16 +529,15 @@ async function updateScorecardFromMap() {
     document.getElementById('placeholder').style.display = 'none';
     document.getElementById('saveBtn').disabled = false;
 
-    // Replace bg with data URL
+    // Apply data URLs for images
     const bgImgEl = preview.querySelector('.background-image img.bg-img');
     if (bgImgEl) {
-        applyBackgroundDataUrl(preview, proxiedBackgroundUrl, 'Map render:');
+        applyBackgroundDataUrl(preview, backgroundUrl, currentScoreData ? 'Score render:' : 'Map render:');
     }
 
-    // Replace avatar with data URL
     const avatarImgEl = preview.querySelector('.avatar-container img.avatar');
     if (avatarImgEl) {
-        applyAvatarDataUrl(preview, proxiedAvatarUrl, 'Map render:');
+        applyAvatarDataUrl(preview, avatarUrl, currentScoreData ? 'Score render:' : 'Map render:');
     }
 }
 
@@ -487,272 +580,6 @@ function getUserOverrides() {
         userRank: document.getElementById('userRankOverride').value,
         avatarUrl: document.getElementById('avatarUrlOverride').value
     };
-}
-
-// Update scorecard display using score data
-async function updateScorecard() {
-    if (!currentScoreData) return;
-
-    // Get user input values
-    const extraText = document.getElementById('extraText').value.replace(/\n/g, '<br>');
-    const fullComboOverride = document.getElementById('fullComboOverride').checked;
-    const backgroundOverride = document.getElementById('backgroundOverride').value;
-    const ppOverride = document.getElementById('ppOverride').value;
-    const lazerScoringOverride = document.getElementById('lazerScoringOverride').checked;
-    
-    // Get score override values
-    const overrides = getScoreOverrides();
-    const userOverrides = getUserOverrides();
-
-    const data = currentScoreData;
-    const isLoved = data.beatmap.status === 'loved';
-
-    // Use lazer override if provided, otherwise use detected value
-    const isLazer = lazerScoringOverride;
-
-    // Apply overrides to score data
-    const scoreData = {
-        score: overrides.score !== '' ? parseInt(overrides.score) : (data.lazer ? data.score.score : data.score.classic_score),
-        classic_score: overrides.score !== '' ? parseInt(overrides.score) : data.score.classic_score,
-        c300: overrides.count300 !== '' ? parseInt(overrides.count300) : data.score.c300,
-        c100: overrides.count100 !== '' ? parseInt(overrides.count100) : data.score.c100,
-        c50: overrides.count50 !== '' ? parseInt(overrides.count50) : data.score.c50,
-        misses: overrides.countMiss !== '' ? parseInt(overrides.countMiss) : data.score.misses,
-        cEnds: overrides.countSliderEnds !== '' ? parseInt(overrides.countSliderEnds) : data.score.cEnds,
-        max_combo: overrides.combo !== '' ? parseInt(overrides.combo) : data.score.max_combo,
-        accuracy: overrides.accuracy !== '' ? parseFloat(overrides.accuracy) / 100 : data.score.accuracy,
-        pp: overrides.pp !== '' ? parseFloat(overrides.pp) : data.score.pp,
-        rank: overrides.rank !== '' ? overrides.rank : data.score.rank,
-        mods: overrides.mods !== '' ? parseModsString(overrides.mods) : data.score.mods,
-        leaderboard: overrides.leaderboard !== '' ? parseInt(overrides.leaderboard) : data.score.leaderboard,
-        full_combo: data.score.full_combo,
-        cSliders: data.score.cSliders
-    };
-
-    // Apply user overrides
-    const username = userOverrides.username !== '' ? userOverrides.username : data.user.username;
-    const userRank = userOverrides.userRank !== '' ? parseInt(userOverrides.userRank) : data.user.user_rank;
-    const avatarUrl = userOverrides.avatarUrl !== '' ? userOverrides.avatarUrl : data.user.avatar_url;
-
-    // Debug logging for score type detection
-    console.log('Score type detection:', {
-        isLazer: isLazer,
-        scoreType: isLazer ? 'Lazer' : 'Classic'
-    });
-
-    // Determine PP display based on map status
-    let ppDisplay;
-    if (isLoved) {
-        // For loved maps, use override PP or heart symbol
-        if (ppOverride === '' || ppOverride === null) {
-            ppDisplay = '♥';
-        } else {
-            ppDisplay = `${formatScore(Math.round(parseFloat(ppOverride)))}pp ♥`;
-        }
-    } else {
-        // For ranked maps, use actual or overridden PP
-        ppDisplay = `${formatScore(Math.round(scoreData.pp))}pp`;
-    }
-
-    // Determine full combo text based on override or actual combo status
-    const fullComboText = (fullComboOverride || data.score.full_combo) ? "Full Combo!" : "";
-
-    // Determine background image, try HD version first, fallback to API cover
-    const fallbackBackgroundUrl = data.beatmap.cover;
-    const highDefBackgroundUrl = `https://assets.ppy.sh/beatmaps/${data.beatmap.id}/covers/raw.jpg`;
-
-    // Try to fetch the HD background image
-    let backgroundUrl = fallbackBackgroundUrl;
-    try {
-        const response = await fetch(highDefBackgroundUrl, { method: 'HEAD' });
-        if (response.ok) {
-            backgroundUrl = highDefBackgroundUrl;
-        } else {
-            console.warn('High-definition background not found, falling back to API cover image.');
-        }
-    } catch (error) {
-        console.error('Error fetching high-definition background:', error);
-    }
-
-    // Get proxied background URL
-    const proxiedBackgroundUrl = getProxiedImageUrl('background', backgroundOverride || backgroundUrl);
-    
-    // Get proxied avatar URL
-    const proxiedAvatarUrl = getProxiedImageUrl('avatar', avatarUrl);
-
-    // Calculate star rating colour
-    const starColour = getGradientColour(data.beatmap.star_rating);
-    const srColour = data.beatmap.star_rating > 6.5 ? "ffe475" : "2c3b43";
-
-    // Generate scorecard HTML based on score data
-    const scorecardHtml = `
-        <div class="top-bar">
-            <div class="header">
-                <div class="map-info">
-                    <div class="map-title">${data.beatmap.title}</div>
-                    <div class="star-container">
-                        <div class="star-rating" style="background: ${starColour}; color: #${srColour}">★ ${data.beatmap.star_rating.toFixed(2)}&nbsp;</div>
-                        <div class="mapper">
-                            <span class="map-diff">${truncateText(data.beatmap.difficulty, 32)} </span>
-                            <span class="mapped-by">Mapped by: </span>
-                            <span class="mapper">${data.beatmap.creator}</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="mod-icons">
-                    ${generateModIconsHtml(scoreData.mods)}
-                </div>
-            </div>
-        </div>
-        <div class="middle-section">
-            <div class="background-image">
-                <img class="bg-img" src="" alt="" crossorigin="anonymous">
-            </div>
-            <div class="background-overlay"></div>
-            <div class="main-content">
-                <div class="left-section">
-                    <div class="stats">
-                        <div class="score">Score: ${formatScore(isLazer ? scoreData.score : scoreData.classic_score)}</div>
-                        <div class="hit-counts">
-                            ${isLazer ? `
-                                <!-- LAZER LAYOUT: 300/100/50 - Miss/Slider Ends - Combo/Accuracy -->
-                                <div class="hit-count-row">
-                                    <div class="stat stat-300">
-                                        <span class="label">300</span>
-                                        <span class="value">${scoreData.c300}</span>
-                                    </div>
-                                    <div class="stat stat-100">
-                                        <span class="label">100</span>
-                                        <span class="value">${scoreData.c100}</span>
-                                    </div>
-                                    <div class="stat stat-50">
-                                        <span class="label">50</span>
-                                        <span class="value">${scoreData.c50}</span>
-                                    </div>
-                                </div>
-                                <div class="hit-count-row">
-                                    <div class="stat stat-miss">
-                                        <span class="label">Miss</span>
-                                        <span class="value">${scoreData.misses}</span>
-                                    </div>
-                                    <div class="stat stat-sliderend">
-                                        <span class="label">Slider Ends</span>
-                                        <span class="value">${scoreData.cEnds}/${scoreData.cSliders}</span>
-                                    </div>
-                                </div>
-                                <div class="hit-count-row">
-                                    <div class="stat stat-combo">
-                                        <span class="label">Combo</span>
-                                        <span class="value">${formatScore(scoreData.max_combo)}x</span>
-                                    </div>
-                                    <div class="stat stat-accuracy">
-                                        <span class="label">Accuracy</span>
-                                        <span class="value">${formatAccuracy(scoreData.accuracy)}%</span>
-                                    </div>
-                                </div>
-                            ` : `
-                                <!-- CLASSIC LAYOUT: 300/100 - 50/Miss - Combo/Accuracy -->
-                                <div class="hit-count-row">
-                                    <div class="stat stat-300">
-                                        <span class="label">300</span>
-                                        <span class="value">${scoreData.c300}</span>
-                                    </div>
-                                    <div class="stat stat-100">
-                                        <span class="label">100</span>
-                                        <span class="value">${scoreData.c100}</span>
-                                    </div>
-                                </div>
-                                <div class="hit-count-row">
-                                    <div class="stat stat-50">
-                                        <span class="label">50</span>
-                                        <span class="value">${scoreData.c50}</span>
-                                    </div>
-                                    <div class="stat stat-miss">
-                                        <span class="label">Miss</span>
-                                        <span class="value">${scoreData.misses}</span>
-                                    </div>
-                                </div>
-                                <div class="hit-count-row">
-                                    <div class="stat stat-combo">
-                                        <span class="label">Combo</span>
-                                        <span class="value">${formatScore(scoreData.max_combo)}x</span>
-                                    </div>
-                                    <div class="stat stat-accuracy">
-                                        <span class="label">Accuracy</span>
-                                        <span class="value">${formatAccuracy(scoreData.accuracy)}%</span>
-                                    </div>
-                                </div>
-                            `}
-                        </div>
-                    </div>
-                </div>
-                <div class="right-section">
-                    <div class="rank-badge rank-${scoreData.rank}"></div>
-                    <div class="performance">
-                        <div></div>
-                        <div class="full-combo">${fullComboText}</div>
-                        <div></div>
-                        <div class="pp">${ppDisplay}</div>
-                        <div class="extra">${extraText}</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="bottom-bar">
-            <div class="bottom-section">
-                <div class="user-info">
-                    <div class="avatar-container">
-                        <img src="${proxiedAvatarUrl}" alt="Avatar" class="avatar" crossorigin="anonymous">
-                        <div class="flag" style="background-image: url('./flags/${data.user.country.toLowerCase()}.png')"></div>
-                    </div>
-                    <div class="user-details">
-                        <div class="username">${username}</div>
-                        <div class="user-rank">#${formatScore(userRank)}</div>
-                    </div>
-                </div>
-                <div class="leaderboard-details">
-                    <div class="leaderboard">Leaderboard</div>
-                    <div class="leaderboard-rank">#${formatScore(scoreData.leaderboard)}</div>
-                </div>
-            </div>
-        </div>
-    `;
-
-
-
-    // Update the preview container with generated HTML
-    const preview = document.getElementById('scorecard-preview');
-    preview.innerHTML = scorecardHtml;
-
-    // Wait for DOM to be fully rendered before adjusting
-    setTimeout(() => {
-        // Adjust title size based on mod icons
-        const titleElement = preview.querySelector('.map-title');
-        if (titleElement) {
-            const adjustedTitle = adjustTitleSize(data.beatmap.title);
-            titleElement.textContent = adjustedTitle;
-        }
-        
-        // Adjust other elements
-        adjustRightSectionSizes();
-        adjustScorecardHeight(extraText, fullComboText !== "");
-    }, 50);
-
-    preview.style.display = 'flex';
-    document.getElementById('placeholder').style.display = 'none';
-    document.getElementById('saveBtn').disabled = false;
-
-    // Replace bg with data URL
-    const bgImgEl = preview.querySelector('.background-image img.bg-img');
-    if (bgImgEl) {
-        applyBackgroundDataUrl(preview, proxiedBackgroundUrl, 'Score render:');
-    }
-
-    // Replace avatar with data URL
-    const avatarImgEl = preview.querySelector('.avatar-container img.avatar');
-    if (avatarImgEl) {
-        applyAvatarDataUrl(preview, proxiedAvatarUrl, 'Map render:');
-    }
 }
 
 // Set status message with appropriate styling
@@ -1265,7 +1092,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (currentScoreData) {
                 updateScorecard();
             } else if (currentMapData) {
-                updateScorecardFromMap();
+                updateScorecard();
             }
         }
     });
@@ -1280,7 +1107,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                         if (currentScoreData) {
                             updateScorecard();
                         } else if (currentMapData) {
-                            updateScorecardFromMap();
+                            updateScorecard();
                         }
                     }, 300);
                 }
@@ -1292,7 +1119,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     if (currentScoreData) {
                         updateScorecard();
                     } else if (currentMapData) {
-                        updateScorecardFromMap();
+                        updateScorecard();
                     }
                 });
             }
