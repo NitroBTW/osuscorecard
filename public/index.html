@@ -22,6 +22,14 @@
                 <label for="extraText">Extra Text:</label>
                 <textarea id="extraText" placeholder="Any extra information about this play?"></textarea>
             </div>
+            <!-- Small Scorecard Toggle -->
+            <!-- <div class="input-group toggle-group">
+                <span>Small Scorecard</span>
+                <label class="switch">
+                    <input type="checkbox" id="smallScorecardToggle">
+                    <span class="slider round"></span>
+                </label>
+            </div> -->
             <!-- Dropdown section for overrides -->
             <div class="dropdown-container">
                 <!-- Dropdown bar -->
@@ -36,10 +44,12 @@
                         <input type="text" id="mapId" placeholder="658127">
                     </div>
 
-                    <!-- Lazer Scoring Checkbox -->
-                    <div class="input-group">
-                        <label for="lazerScoringOverride">
-                            <input type="checkbox" id="lazerScoringOverride"> Lazer Scoring
+                    <!-- Lazer Scoring Toggle -->
+                    <div class="input-group toggle-group">
+                        <span>Lazer Scoring</span>
+                        <label class="switch">
+                            <input type="checkbox" id="lazerScoringOverride">
+                            <span class="slider round"></span>
                         </label>
                     </div>
 
@@ -103,9 +113,12 @@
                             </div>
                         </div>
 
-                        <div class="input-group">
-                            <label for="fullComboOverride">
-                                <input type="checkbox" id="fullComboOverride"> Full Combo
+                        <!-- Full Combo Toggle -->
+                        <div class="input-group toggle-group">
+                            <span>Full Combo</span>
+                            <label class="switch">
+                                <input type="checkbox" id="fullComboOverride">
+                                <span class="slider round"></span>
                             </label>
                         </div>
                         
