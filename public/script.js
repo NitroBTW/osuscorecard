@@ -3,6 +3,7 @@ let currentScoreData = null;
 let currentMapData = null;
 let gradientCanvas = null;
 let gradientCtx = null;
+let smallScorecard = false;
 
 // Debug helper: safely extract background-image url(...) value
 function extractCssBackgroundUrl(backgroundImageValue) {
@@ -413,6 +414,45 @@ function generateHitCountsHtml(scoreData, isLazer) {
 async function generateScorecardHtml(scoreData, userData, beatmap, isLazer, ppDisplay, fullComboText, extraText, backgroundUrl, avatarUrl) {
     const starColour = getGradientColour(beatmap.star_rating);
     const srColour = beatmap.star_rating > 6.5 ? "ffe475" : "2c3b43";
+
+    if (smallScorecard){
+        return `
+        <div class="top-bar">
+            <div class="header">
+                <div class="map-info">
+                    <div class="map-title">${beatmap.title}</div>
+                    <div class="star-container">
+                        <div class="star-rating" style="background: ${starColour}; color: #${srColour}">★ ${beatmap.star_rating.toFixed(2)}&nbsp;</div>
+                        <div class="mapper">
+                            <span class="map-diff">${truncateText(beatmap.difficulty, 32)} </span>
+                            <span class="mapped-by">Mapped by: </span>
+                            <span class="mapper">${beatmap.creator}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="mod-icons">
+                    ${generateModIconsHtml(scoreData.mods)}
+                </div>
+            </div>
+        </div>
+        <div class="bottom-bar">
+            <div class="bottom-section">
+                <div class="rank-badge rank-${scoreData.rank}"></div>
+                <div class="stat stat-combo">
+                    <span class="label">Combo</span>
+                    <span class="value">${formatScore(scoreData.max_combo)}x</span>
+                </div>
+                <div class="stat stat-accuracy">
+                    <span class="label">Accuracy</span>
+                    <span class="value">${formatAccuracy(scoreData.accuracy)}%</span>
+                </div>
+                <div class="performance">
+                    <span class="pp">${ppDisplay}</span>
+                </div>
+            </div>
+        </div>
+        `;
+    }
     
     return `
         <div class="top-bar">
@@ -420,7 +460,7 @@ async function generateScorecardHtml(scoreData, userData, beatmap, isLazer, ppDi
                 <div class="map-info">
                     <div class="map-title">${beatmap.title}</div>
                     <div class="star-container">
-                        <div class="star-rating" style="background: ${starColour}; color: #${srColour}">☆ ${beatmap.star_rating.toFixed(2)}&nbsp;</div>
+                        <div class="star-rating" style="background: ${starColour}; color: #${srColour}">★ ${beatmap.star_rating.toFixed(2)}&nbsp;</div>
                         <div class="mapper">
                             <span class="map-diff">${truncateText(beatmap.difficulty, 32)} </span>
                             <span class="mapped-by">Mapped by: </span>
@@ -511,7 +551,11 @@ async function updateScorecard() {
 
     // Update the preview container
     const preview = document.getElementById('scorecard-preview');
-    preview.innerHTML = scorecardHtml;
+    preview.innerHTML = `
+        <div id="generated-scorecard" class="scorecard ${smallScorecard ? 'small-scorecard' : 'scorecard'}">
+            ${scorecardHtml}
+        </div>
+    `;
 
     // Apply post-processing
     setTimeout(() => {
@@ -919,7 +963,7 @@ function adjustScorecardHeight(extraText, hasFullCombo) {
 
 // Save scorecard as PNG image using html-to-image library
 async function saveAsPNG() {
-    const scorecard = document.getElementById('scorecard-preview');
+    const scorecard = document.getElementById('generated-scorecard');
     if (!scorecard) {
         setStatus('No scorecard to save', 'error');
         return;
@@ -1156,3 +1200,9 @@ function toggleDropdown() {
         arrow.textContent = '▼';
     }
 }
+
+// Toggle small scorecard
+document.getElementById("smallScorecardToggle").addEventListener("change", function() {
+    smallScorecard = this.checked;
+    updateScorecard();
+})

@@ -401,7 +401,7 @@ padding:0 10px
 }
 
 .top-bar {
-height:80px
+height:85px
 }
 
 .bottom-bar {
@@ -473,7 +473,8 @@ overflow:hidden
 flex:1;
 filter:drop-shadow(0 4px 8px #0000004d);
 min-width:200px;
-max-width:calc(100% - 140px)
+max-width:calc(100% - 140px);
+padding: 0 10px
 }
 
 .map-title {
@@ -505,7 +506,7 @@ border-radius:16px;
 font-weight:600;
 font-size:18px;
 margin-right:8px;
-filter:drop-shadow(0 4px 8px #0000004d)
+box-shadow: 0 4px 8px rgba(0,0,0,0.3);
 }
 
 .mapped-by {
@@ -775,3 +776,195 @@ filter:drop-shadow(0 4px 8px #0000004d)
 .rank-SH {background-image:url(./ranks/SH.png)}
 .rank-X {background-image:url(./ranks/X.png)}
 .rank-XH {background-image:url(./ranks/XH.png)}
+
+/* Small scorecard styles */
+.small-scorecard {
+width: 700px;
+min-height: 200px;
+height: auto;
+border-radius: 20px;
+background: #1f292e;
+position: relative;
+display: flex;
+flex-direction: column;
+justify-content: space-between;
+overflow: hidden
+}
+
+.small-scorecard .top-bar {
+width: 100%;
+height: 85px;
+background: #2e3538;
+z-index: 1
+}
+
+.small-scorecard .header {
+display: flex;
+justify-content: space-between;
+align-items: flex-start;
+min-height: 80px;
+width: 100%;
+overflow: hidden
+}
+
+.small-scorecard .map-info {
+flex: 1;
+padding: 0 10px;
+min-width: 200px;
+max-width: calc(100% - 140px)
+}
+
+.small-scorecard .map-title {
+font-size: 35px;
+font-weight: 600;
+margin-top: 5px;
+margin-bottom: 2px;
+color: #ffffff;
+line-height: 1.1;
+filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))
+}
+
+.small-scorecard .map-diff {
+font-size: 20px;
+font-weight: 600;
+margin-bottom: 8px;
+color: #ffffff;
+line-height: 1.1;
+filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))
+}
+
+.small-scorecard .star-container {
+display: inline-flex;
+align-items: center;
+margin-bottom: 8px
+}
+
+.small-scorecard .star-rating {
+padding: 3px 3px;
+border-radius: 16px;
+font-weight: 600;
+font-size: 18px;
+margin-right: 8px
+}
+
+.small-scorecard .mapped-by {
+font-size: 14px;
+color: #d9e3e6;
+font-weight: 400;
+filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))
+}
+
+.small-scorecard .mapper {
+font-size: 14px;
+color: #77b8d9;
+font-weight: 400;
+filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))
+}
+
+.small-scorecard .mod-icons {
+display: flex;
+flex-direction: row-reverse;
+justify-content: flex-end;
+align-items: flex-start;
+flex-shrink: 0
+}
+
+.small-scorecard .mod-icon {
+width: 70px;
+height: 70px;
+background-size: contain;
+background-repeat: no-repeat;
+background-position: center;
+filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))
+}
+
+.small-scorecard .bottom-bar {
+width: 100%;
+height: 120px;
+background: #1f292e;
+z-index: 0
+}
+
+.small-scorecard .bottom-section {
+display: flex;
+flex-direction: row;
+margin-top: 5%
+}
+
+.small-scorecard .stat {
+display: flex;
+flex-direction: column;
+align-items: center;
+min-width: 90px;
+margin-inline: 2%;
+margin-top: 1%
+}
+
+.small-scorecard .stat .label {
+font-size: 40px;
+font-weight: 600;
+line-height: 1;
+color: #cfd8dc;
+text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3)
+}
+
+.small-scorecard .stat .value {
+font-size: 35px;
+line-height: 1.1;
+color: #ffffff;
+text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3)
+}
+
+.small-scorecard .stat-accuracy .label {color:#ffffff}
+.small-scorecard .stat-combo .label {color:#ffffff}
+
+.small-scorecard .performance {
+display: flex;
+align-items: flex-end;
+margin-left: auto;
+gap: 2px;
+min-height: 50px; 
+overflow: visible
+}
+
+.small-scorecard .pp {
+font-size: 50px;
+font-weight: 600;
+color: #ed89ff;
+filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+transition: font-size 0.2s ease
+}
+
+.small-scorecard .extra {
+text-align: right;
+font-size: 25px;
+font-weight: 600;
+color: #FFFFFF;
+margin-top: 5px;
+filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+white-space: pre-wrap;
+word-wrap: break-word;
+overflow-wrap: break-word;
+max-width: 350px
+}
+
+.small-scorecard .rank-badge {
+width: 90px;
+height: 90px;
+background-size: contain;
+background-repeat: no-repeat;
+background-position: center;
+filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+margin-right: 5%;
+margin-left: 3%
+}
+
+/* Rank badge backgrounds */
+.small-scorecard .rank-D {background-image:url('./ranks/D.png')}
+.small-scorecard .rank-C {background-image:url('./ranks/C.png')}
+.small-scorecard .rank-B {background-image:url('./ranks/B.png')}
+.small-scorecard .rank-A {background-image:url('./ranks/A.png')}
+.small-scorecard .rank-S {background-image:url('./ranks/S.png')}
+.small-scorecard .rank-SH {background-image:url('./ranks/SH.png')}
+.small-scorecard .rank-X {background-image:url('./ranks/X.png')}
+.small-scorecard .rank-XH {background-image:url('./ranks/XH.png')}
