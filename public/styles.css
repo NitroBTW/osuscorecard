@@ -623,7 +623,7 @@ text-shadow:0 4px 8px #0000004d
 display:flex;
 flex-direction:column;
 align-items:flex-end;
-justify-content:flex-start;
+justify-content:space-between;
 text-align:right;
 min-width:120px
 }
@@ -641,7 +641,7 @@ filter:drop-shadow(0 4px 8px #0000004d)
 display:flex;
 flex-direction:column;
 align-items:flex-end;
-gap:8px;
+gap:4px;
 min-height:200px;
 overflow:visible
 }
@@ -653,29 +653,18 @@ color:#f0e460;
 white-space:nowrap;
 overflow:visible;
 filter:drop-shadow(0 4px 8px #0000004d);
-transition:font-size .2s ease
 }
 
-.full-combo.size-large {font-size:35px}
-.full-combo.size-medium {font-size:30px}
-.full-combo.size-small {font-size:25px}
-
 .pp {
-font-size:80px;
+font-size:70px;
 font-weight:600;
 color:#ed89ff;
 filter:drop-shadow(0 4px 8px #0000004d);
-transition:font-size .2s ease
 }
-
-.pp.size-large {font-size:80px}
-.pp.size-medium {font-size:70px}
-.pp.size-small {font-size:60px}
-.pp.size-tiny {font-size:50px}
 
 .extra {
 text-align:right;
-font-size:25px;
+font-size:35px;
 font-weight:600;
 color:#FFF;
 margin-top:5px;

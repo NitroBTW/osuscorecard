@@ -887,39 +887,6 @@ function adjustRightSectionSizes() {
     const availableWidth = scorecardRect.width - (leftRect.width + 50);
     const ppElement = document.querySelector('.pp');
     const fullComboElement = document.querySelector('.full-combo');
-    
-    // Adjust PP text size
-    if (ppElement) {
-        const ppSizes = [
-            { className: 'size-large', maxWidth: 300 },
-            { className: 'size-medium', maxWidth: 250 },
-            { className: 'size-small', maxWidth: 200 },
-            { className: 'size-tiny', maxWidth: 150 }
-        ];
-        
-        for (const size of ppSizes) {
-            if (availableWidth >= size.maxWidth) {
-                ppElement.className = `pp ${size.className}`;
-                break;
-            }
-        }
-    }
-    
-    // Adjust Full Combo text size
-    if (fullComboElement && fullComboElement.textContent) {
-        const fcSizes = [
-            { className: 'size-large', maxWidth: 250 },
-            { className: 'size-medium', maxWidth: 200 },
-            { className: 'size-small', maxWidth: 150 }
-        ];
-        
-        for (const size of fcSizes) {
-            if (availableWidth >= size.maxWidth) {
-                fullComboElement.className = `full-combo ${size.className}`;
-                break;
-            }
-        }
-    }
 }
 
 // Function to calculate required height for extra content
