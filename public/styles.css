@@ -473,7 +473,7 @@ overflow:hidden
 flex:1;
 filter:drop-shadow(0 4px 8px #0000004d);
 min-width:200px;
-max-width:calc(100% - 140px);
+max-width:100%;
 padding: 0 10px
 }
 
@@ -768,7 +768,7 @@ filter:drop-shadow(0 4px 8px #0000004d)
 
 /* Small scorecard styles */
 .small-scorecard {
-width: 700px;
+width: 800px;
 min-height: 200px;
 height: auto;
 border-radius: 20px;
@@ -800,7 +800,7 @@ overflow: hidden
 flex: 1;
 padding: 0 10px;
 min-width: 200px;
-max-width: calc(100% - 140px)
+max-width: 100%
 }
 
 .small-scorecard .map-title {
