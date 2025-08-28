@@ -21,6 +21,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install minifiers
+        run: npm install -g terser clean-css-cli html-minifier-terser
+
       - name: Build project
         run: npm run build
 
