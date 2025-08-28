@@ -4,11 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build:js": "terser public/script.js -o build/script.min.js --compress --mangle",
-    "build:css": "cleancss -o build/styles.min.css public/styles.css",
-    "build:html": "html-minifier-terser --collapse-whitespace --remove-comments -o build/index.html public/index.html",
-    "build:assets": "cp -r public/flags public/icons public/ranks public/favicon.png public/gradient.png build/",
-    "build": "rm -rf build && mkdir build && npm run build:js && npm run build:css && npm run build:html && npm run build:assets"
+    "build:js": "terser public/script.js -o public/script.js --compress --mangle",
+    "build:css": "cleancss -o public/styles.css public/styles.css",
+    "build:html": "html-minifier-terser --collapse-whitespace --remove-comments -o public/index.html public/index.html",
+    "build": "npm run build:js && npm run build:css && npm run build:html"
   },
   "keywords": [],
   "author": "",
