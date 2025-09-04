@@ -165,6 +165,17 @@ function getProxiedImageUrl(type, originalUrl) {
     return `/api/proxy-image/${type}?url=${encodeURIComponent(originalUrl)}`;
 }
 
+// Update counter display
+async function updateCounterDisplay() {
+    const result = await fetch("/api/scorecards/count");
+    const data = await result.json();
+    console.log(`fetched: ${data.count}`)
+    document.getElementById("scorecard-count").innerText =
+        `Scorecards generated: ${data.count}`;
+}
+// Run the update on page load
+updateCounterDisplay()
+
 // Fetch map data from server API
 async function fetchMapData(mapId) {
     try {
@@ -996,6 +1007,9 @@ function adjustScorecardHeight(extraText, hasFullCombo) {
 
 // Save scorecard as PNG image using html-to-image library
 async function saveAsPNG() {
+    // Tell the server that a scorecard has been generated (incremenet counter)
+    await fetch("/api/scorecards/increment", { method: "POST" });
+    updateCounterDisplay()
     const scorecard = document.getElementById('generated-scorecard');
     if (!scorecard) {
         setStatus('No scorecard to save', 'error');

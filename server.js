@@ -1,12 +1,14 @@
 // Import packages
 require('dotenv').config();
 const express = require('express');
+const sqlite3 = require('sqlite3').verbose();
 const axios = require('axios');
 const cors = require('cors');
 const path = require('path');
 
 const app = express();
 const PORT = 3000;
+const db = new sqlite3.Database("./scorecards.db")
 
 // Middleware
 app.use(cors());
@@ -18,6 +20,39 @@ const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
 
 let accessToken = null;
+
+
+// create table if not exists
+db.run(
+  "CREATE TABLE IF NOT EXISTS stats (id INTEGER PRIMARY KEY, count INTEGER)"
+);
+
+// ensure we have a row
+db.get("SELECT count FROM stats WHERE id = 1", (err, row) => {
+  if (!row) {
+    db.run("INSERT INTO stats (id, count) VALUES (1, 0)");
+  }
+});
+
+// increment endpoint
+app.post("/api/scorecards/increment", (req, res) => {
+  db.run("UPDATE stats SET count = count + 1 WHERE id = 1", function (err) {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ success: true });
+  });
+});
+
+// get count endpoint
+app.get("/api/scorecards/count", (req, res) => {
+  db.get("SELECT count FROM stats WHERE id = 1", (err, row) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ count: row.count });
+  });
+});
+
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
 
 // Function to get access token from osu! API
 async function getAccessToken() {
