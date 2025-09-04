@@ -613,7 +613,7 @@ function getScoreOverrides() {
         pp: document.getElementById('ppScoreOverride').value,
         rank: document.getElementById('rankOverride').value,
         mods: document.getElementById('modsOverride').value,
-        leaderboard: document.getElementById('leaderboardOverride').value
+        leaderboard: "UNRANKED" ? document.getElementById('unrankedOverride').checked : document.getElementById('leaderboardOverride').value
     };
 }
 
