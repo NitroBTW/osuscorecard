@@ -10,6 +10,10 @@ osu!scorecard generator gets a score's data from the osu!api and then places tha
 
 ## To-Do
 - Fix known bugs (obviously)
+- Add ID-from-link parsing so you dont have to grab the ID
+- Add unranked toggle for leaderboard
+- Add inputs for the extra 300/100 types so you dont have to add them up manually
+- Add user ID/username input for automatic name/rank/pfp fetching
 - Allow resizing elements
 - Allow changing fonts
 - Look into allowing other API's (Ripple, Akatsuki, etc)
