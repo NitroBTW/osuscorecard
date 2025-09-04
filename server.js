@@ -50,10 +50,6 @@ app.get("/api/scorecards/count", (req, res) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
-
 // Function to get access token from osu! API
 async function getAccessToken() {
     try {
