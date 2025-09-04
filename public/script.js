@@ -411,7 +411,7 @@ function generateHitCountsHtml(scoreData, isLazer) {
 }
 
 // Unified scorecard generation function
-async function generateScorecardHtml(scoreData, userData, beatmap, isLazer, ppDisplay, fullComboText, extraText, backgroundUrl, avatarUrl) {
+async function generateScorecardHtml(scoreData, userData, beatmap, isLazer, ppDisplay, fullComboText, extraText, backgroundUrl, avatarUrl, leaderboardDisplay) {
     const starColour = getGradientColour(beatmap.star_rating);
     const srColour = beatmap.star_rating > 6.5 ? "ffe475" : "2c3b43";
 
@@ -513,7 +513,7 @@ async function generateScorecardHtml(scoreData, userData, beatmap, isLazer, ppDi
                 </div>
                 <div class="leaderboard-details">
                     <div class="leaderboard">Leaderboard</div>
-                    <div class="leaderboard-rank">#${formatScore(scoreData.leaderboard)}</div>
+                    <div class="leaderboard-rank">#${leaderboardDisplay}</div>
                 </div>
             </div>
         </div>
@@ -528,12 +528,15 @@ async function updateScorecard() {
     const extraText = document.getElementById('extraText').value.replace(/\n/g, '<br>');
     const fullComboOverride = document.getElementById('fullComboOverride').checked;
     const lazerScoringOverride = document.getElementById('lazerScoringOverride').checked;
+    const unrankedOverride = document.getElementById('unrankedOverride').checked;
 
     const scoreData = extractScoreData();
     const userData = extractUserData();
     const beatmap = getBeatmapData();
     
     if (!scoreData || !userData || !beatmap) return;
+
+    const leaderboardDisplay = unrankedOverride ? "UNRANKED" : formatScore(scoreData.leaderboard);
 
     const isLoved = beatmap.status === 'loved';
     const isLazer = currentScoreData ? lazerScoringOverride : lazerScoringOverride;
@@ -546,7 +549,7 @@ async function updateScorecard() {
 
     const scorecardHtml = await generateScorecardHtml(
         scoreData, userData, beatmap, isLazer, ppDisplay, 
-        fullComboText, extraText, backgroundUrl, avatarUrl
+        fullComboText, extraText, backgroundUrl, avatarUrl, leaderboardDisplay
     );
 
     // Update the preview container
@@ -613,7 +616,7 @@ function getScoreOverrides() {
         pp: document.getElementById('ppScoreOverride').value,
         rank: document.getElementById('rankOverride').value,
         mods: document.getElementById('modsOverride').value,
-        leaderboard: "UNRANKED" ? document.getElementById('unrankedOverride').checked : document.getElementById('leaderboardOverride').value
+        leaderboard: document.getElementById('leaderboardOverride').value
     };
 }
 
