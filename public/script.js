@@ -1177,7 +1177,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     });
     
     // Live update handlers for override inputs
-    [extraTextInput, fullComboOverride, backgroundOverride, ppOverride, ...scoreOverrideInputs, ...userOverrideInputs].forEach(input => {
+    [extraTextInput, fullComboOverride, backgroundOverride, ppOverride, ...scoreOverrideInputs, ...userOverrideInputs, unrankedOverride].forEach(input => {
         if (input) {
             input.addEventListener('input', function() {
                 if (currentScoreData || currentMapData) {
