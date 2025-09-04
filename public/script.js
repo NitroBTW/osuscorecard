@@ -173,7 +173,7 @@ async function fetchMapData(mapId) {
         // Make request to map API endpoint
         const response = await fetch(`/api/map/${mapId}`);
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error(`Failed to fetch map data! Make sure you entered a valid ID or URL. If this error persists, report it on the github page!`);
         }
         
         // Parse response and store map data
@@ -641,7 +641,7 @@ async function fetchScoreData(scoreId) {
         // Make request to score API endpoint
         const response = await fetch(`/api/score/${scoreId}`);
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error(`Failed to fetch score data!`);
         }
         
         // Parse response and store score data
@@ -710,8 +710,71 @@ function populateOverrideFields(data) {
     toggleSliderEndsInput(data.lazer);
 }
 
+// A function to return a score ID from either an ID or URL input
+function parseScoreId(input) {
+    const trimmed = String(input).trim();
+
+    // if string is a number
+    if (/^\d+$/.test(trimmed)) {
+        return trimmed
+    }
+    const parsedUrl = /^https?:\/\/osu\.ppy\.sh\/scores\/(\d+)(?:[/?#].*)?$/.exec(trimmed);
+    if (parsedUrl) {
+        return parsedUrl[1]
+    }
+
+    return null
+}
+
+// A function to return a map ID from either an ID or URL input
+function parseMapId(input) {
+    const trimmed = String(input).trim();
+
+    // if string is a number
+    if (/^\d+$/.test(trimmed)) {
+        return trimmed
+    }
+
+    const parsedUrl = /^https?:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#\w+\/(\d+)(?:[/?#].*)?$/.exec(trimmed)
+    if (parsedUrl) {
+        return parsedUrl[1]
+    }
+
+    return null
+}
+
 // Add input validation for score override fields
 function setupScoreValidation() {
+    // Score input validation
+    const scoreIdInput = document.getElementById('scoreId');
+    scoreIdInput.addEventListener('input', function() {
+        let value = this.value.trim();
+        let parsedValue = parseScoreId(value)
+        if (parsedValue) {
+            this.style.borderColor = '#4CAF50';
+            this.style.backgroundColor = '';
+        } else {
+            this.style.borderColor = '#f44336';
+            this.style.backgroundColor = '#2c1a1dff';
+        }
+
+    })
+
+    // Beatmap input validation
+    const beatmapIdInput = document.getElementById('mapId');
+    beatmapIdInput.addEventListener('input', function() {
+        let value = this.value.trim();
+        let parsedValue = parseMapId(value)
+        if (parsedValue) {
+            this.style.borderColor = '#4CAF50';
+            this.style.backgroundColor = '';
+        } else {
+            this.style.borderColor = '#f44336';
+            this.style.backgroundColor = '#2c1a1dff';
+        }
+
+    })
+
     // Mods input validation
     const modsInput = document.getElementById('modsOverride');
     modsInput.addEventListener('input', function() {
@@ -1080,7 +1143,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Score ID input handler with debouncing
     scoreIdInput.addEventListener('input', function() {
-        const scoreId = this.value.trim();
+        const inputScoreId = this.value.trim();
+        const scoreId = inputScoreId.match(/\d+$/);
         if (scoreId) {
             // Debounce score fetching to avoid excessive API calls
             debounce(() => fetchScoreData(scoreId), 500);
@@ -1089,7 +1153,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Map ID input handler with debouncing
     mapIdInput.addEventListener('input', function() {
-        const mapId = this.value.trim();
+        const inputMapId = this.value.trim();
+        const mapId = inputMapId.match(/\d+$/);
         if (mapId) {
             // Debounce map fetching to avoid excessive API calls
             debounce(() => fetchMapData(mapId), 500);
