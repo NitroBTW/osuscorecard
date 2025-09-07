@@ -79,7 +79,6 @@ async function loadGradientColours() {
                 gradientCanvas = canvas;
                 gradientCtx = ctx;
                 
-                console.log('✓ Gradient loaded successfully');
                 resolve();
             };
             
@@ -169,7 +168,6 @@ function getProxiedImageUrl(type, originalUrl) {
 async function updateCounterDisplay() {
     const result = await fetch("/api/scorecards/count");
     const data = await result.json();
-    console.log(`fetched: ${data.count}`)
     document.getElementById("scorecard-count").innerText =
         `Scorecards generated: ${data.count}`;
 }
