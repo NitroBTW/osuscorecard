@@ -207,7 +207,6 @@ async function fetchMapData(mapId) {
         // Update scorecard with map data
         updateScorecard();
         setStatus('Map loaded successfully!', 'success');
-        document.getElementById('generateBtn').disabled = false;
         
     } catch (error) {
         console.error('Error fetching map:', error);
@@ -217,7 +216,6 @@ async function fetchMapData(mapId) {
         document.getElementById('scorecard-preview').style.display = 'none';
         document.getElementById('placeholder').style.display = 'block';
         document.getElementById('scoreOverrides').style.display = 'none';
-        document.getElementById('generateBtn').disabled = true;
         document.getElementById('saveBtn').disabled = true;
     }
 }
@@ -680,7 +678,6 @@ async function fetchScoreData(scoreId) {
         // Update scorecard with score data
         updateScorecard();
         setStatus('Score loaded successfully!', 'success');
-        document.getElementById('generateBtn').disabled = false;
         
     } catch (error) {
         console.error('Error fetching score:', error);
@@ -691,7 +688,6 @@ async function fetchScoreData(scoreId) {
         document.getElementById('scorecard-preview').style.display = 'none';
         document.getElementById('placeholder').style.display = 'block';
         document.getElementById('scoreOverrides').style.display = 'none';
-        document.getElementById('generateBtn').disabled = true;
         document.getElementById('saveBtn').disabled = true;
     }
 }
@@ -1136,7 +1132,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     const backgroundOverride = document.getElementById('backgroundOverride');
     const ppOverride = document.getElementById('ppOverride');
     const lazerScoringOverride = document.getElementById('lazerScoringOverride');
-    const generateBtn = document.getElementById('generateBtn');
     const saveBtn = document.getElementById('saveBtn');
     
     // Get score override input elements
@@ -1216,19 +1211,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                     }
                 });
             }
-        }
-    });
-    
-    // Generate button click handler
-    generateBtn.addEventListener('click', function() {
-        const scoreId = scoreIdInput.value.trim();
-        const mapId = mapIdInput.value.trim();
-        
-        // Prioritize score ID if both are provided
-        if (scoreId) {
-            fetchScoreData(scoreId);
-        } else if (mapId) {
-            fetchMapData(mapId);
         }
     });
     
